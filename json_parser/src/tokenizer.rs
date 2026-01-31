@@ -1,27 +1,9 @@
 use regex::Regex;
 
-#[derive(Clone, Copy, Debug)]
-pub enum TokenType {
-    BraceOpen,
-    BraceClosed,
-    BracketOpen,
-    BracketClosed,
-    String,
-    Number,
-    Comma,
-    Colon,
-    True,
-    False,
-    Null,
-}
+use crate::types::Token;
+use crate::types::TokenType;
 
-#[derive(Clone, Debug)]
-pub struct Token {
-    token_type: TokenType,
-    value: String,
-}
-
-pub fn tokenizer(text: &str) -> Vec<Token>{
+pub fn tokenizer(text: &str) -> Vec<Token> {
     let re_digits_bool = Regex::new(r"[\d\w]").unwrap();
     let re_whitespace = Regex::new(r"\s").unwrap();
 
@@ -137,6 +119,6 @@ pub fn tokenizer(text: &str) -> Vec<Token>{
             }
         }
     }
-    
+
     tokens
 }
