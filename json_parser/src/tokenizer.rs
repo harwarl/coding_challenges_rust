@@ -120,5 +120,6 @@ pub fn tokenizer(text: &str) -> Vec<Token> {
         }
     }
 
+    println!("{:?}", tokens);
     tokens
 }
