@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TokenType {
     BraceOpen,
@@ -17,4 +19,15 @@ pub enum TokenType {
 pub struct Token {
     pub(crate) token_type: TokenType,
     pub(crate) value: String,
+}
+
+
+#[derive(Debug, Clone)]
+pub enum ASTNODE {
+    Object(HashMap<String, ASTNODE>),
+    Array(Vec<ASTNODE>),
+    String(String),
+    Number(f64),
+    Boolean(bool),
+    Null,
 }

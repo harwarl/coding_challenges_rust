@@ -1,16 +1,6 @@
 use std::collections::HashMap;
 
-use crate::types::{Token, TokenType};
-
-#[derive(Debug, Clone)]
-enum ASTNODE {
-    Object(HashMap<String, ASTNODE>),
-    Array(Vec<ASTNODE>),
-    String(String),
-    Number(f64),
-    Boolean(bool),
-    Null,
-}
+use crate::types::{Token, TokenType, ASTNODE};
 
 struct Parser {
     tokens: Vec<Token>,
@@ -105,8 +95,6 @@ impl Parser {
 // Converts the tokenizer json to an Object that's mappable
 pub fn parser(tokens: Vec<Token>) {
     let mut parser = Parser { tokens, current: 0 };
-
     let ast = parser.parse();
-
     println!("{:?}", ast);
 }

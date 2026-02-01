@@ -1,5 +1,4 @@
 use regex::Regex;
-
 use crate::types::Token;
 use crate::types::TokenType;
 
