@@ -1,84 +1,93 @@
-use std::{
-    collections::HashMap,
-    fs::File,
-    io::{BufRead, BufReader},
-    path::{self, Path, PathBuf},
-};
+use clap::{Parser, ValueEnum};
+use std::{collections::HashMap, fs::File, io::BufReader, path::PathBuf, time};
 
-use clap::Parser;
+use crate::huffman::huffman_tree;
+
+mod decode;
+mod encode;
+mod helpers;
+mod huffman;
 
 #[derive(Debug, Clone, Parser)]
+#[command(author, version, about, long_about=None)]
 pub struct Args {
-    #[arg(help = "name of the file")]
+    #[arg(value_enum)]
+    action: Action,
+    #[arg(help = "input file path")]
     input: PathBuf,
+    #[arg(help = "new output file path")]
+    output: PathBuf,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum Action {
+    Encode,
+    Decode,
+}
+
+// Sample commands
+// cargo run -- compress test.txt output.txt
+// cargo run -- extract output.txt output.txt
 
 fn main() {
     let args = Args::parse();
 
-    let char_map: HashMap<char, u32> = load_file_and_get_char_occurence(args.input);
+    match args.action {
+        Action::Encode => {
+            let timer: time::Instant = time::Instant::now();
+            // load file
+            let buf_reader: BufReader<File> = helpers::load_file(args.input);
+            // Get the time elapsed to read the file
+            let time = timer.elapsed();
+            println!("Read source file with in times {time:?}");
+
+            println!("Getting array of occurences...");
+            // get the chars and frequency
+            let char_map: HashMap<char, i32> = helpers::get_char_occurence(buf_reader);
+
+            // get the huffman tree
+            let huffman = huffman::huffman_tree::<char>(char_map);
+
+            println!("{:?}", huffman);
+
+            // Start encoding while it's timed
+            let timer = time::Instant::now();
+            let enoded = encode::encode();
+            let time = timer.elapsed();
+            println!("File encoded in {time:?}")
+        }
+        Action::Decode => {}
+    }
 
     // Convert HashMap to Array so We can sort
-    println!("{:?}", char_map.iter().count());
+    // println!("{:?}", char_map.iter().count());
 
-    // convert hashmap to an array of tuples and sort the tuples
-    let mut char_vec : Vec<(&char, &u32)> = char_map.iter().collect();
-    sort_vec(&mut char_vec);
+    // // convert hashmap to an array of tuples and sort the tuples
+    // let mut char_vec: Vec<(&char, &u32)> = char_map.iter().collect();
+    // sort_vec(&mut char_vec);
 }
 
-fn sort_vec(vec_array: &mut Vec<(&char, &u32)>){
+fn sort_vec(vec_array: &mut Vec<(&char, &u32)>) {
     vec_array.sort_by(|a, b| a.1.cmp(b.1));
 }
 
-
-
-fn load_file_and_get_char_occurence<P: AsRef<Path>>(path: P) -> HashMap<char, u32> {
-    // Open file in path
-    let file = File::open(path).expect("Error, file not found");
-    // create a new buffer reader
-    let reader = BufReader::new(file);
-    // char hashMap
-    let mut char_map: HashMap<char, u32> = HashMap::new();
-
-    // Read the file line by line
-    for line in reader.lines() {
-        let line = line.expect("Could not read line");
-        add_and_update_char(line, &mut char_map);
-    }
-    char_map
-}
-
-fn add_and_update_char(line: String, char_map: &mut HashMap<char, u32>)  {
-    // save the chars into an HashMap
-    for ch in line.chars() {
-        // Store char in hashmap
-        *char_map.entry(ch).or_insert(0) += 1;
-    }
-}
-
-fn build_tree_with_char_frequency() {
-    // Organize the hash by weight.
-    // remove the first two trees, (ones with the lowest weight)
-    // join the two trees to create a new tree whose root has the two trees as children, and weight is the sum of the weight of the two tress
-}
-
 // Unit Tests
-#[cfg(test)]
-mod test {
-    use super::*;
+// #[cfg(test)]
+// mod test {
+//     use super::*;
 
-    #[test]
-    fn should_store_chars_to_hash_map() {
-        let mut char_map: HashMap<char, u32> = HashMap::new();
-        let line = String::from("This is a new line");
-        add_and_update_char(line, &mut char_map);
+//     #[test]
+//     fn should_store_chars_to_hash_map() {
+//         let mut char_map: HashMap<char, u32> = HashMap::new();
+//         let line = String::from("This is a new line");
+//         add_and_update_char(line, &mut char_map);
 
-        // assert that number of "i"s is 3
-        assert_eq!(*char_map.get(&'i').unwrap(), 3);
-        assert_eq!(*char_map.get(&'T').unwrap(), 1);
-        assert_eq!(*char_map.get(&'s').unwrap(), 2);
-    }
-}
+//         // assert that number of "i"s is 3
+//         assert_eq!(*char_map.get(&'i').unwrap(), 3);
+//         assert_eq!(*char_map.get(&'T').unwrap(), 1);
+//         assert_eq!(*char_map.get(&'s').unwrap(), 2);
+//     }
+// }
 
 // pub fn add(left: u64, right: u64) -> u64 {
 //     left + right
