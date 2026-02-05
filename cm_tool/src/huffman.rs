@@ -45,29 +45,29 @@ pub enum Tree<T> {
 impl<T: Clone> Tree<T> {
     pub fn freq(&self) -> i32 {
         match self {
-            Self::Leaf { token, freq } => *freq,
-            Self::Node { freq, left, right } => *freq,
+            Self::Leaf { freq, .. } => *freq,
+            Self::Node { freq, .. } => *freq,
         }
     }
 
     pub fn token(&self) -> Option<T> {
         match self {
-            Self::Leaf { token, freq } => Some(token.clone()),
-            Self::Node { freq, left, right } => None,
+            Self::Leaf { token, ..} => Some(token.clone()),
+            Self::Node { .. } => None,
         }
     }
 
     pub fn left(&self) -> Option<&Tree<T>> {
         match self {
-            Self::Node { freq, left, right } => Some(left),
-            Self::Leaf { token, freq } => None,
+            Self::Node {left, .. } => Some(left),
+            Self::Leaf { .. } => None,
         }
     }
 
     pub fn right(&self) -> Option<&Tree<T>> {
         match self {
-            Self::Node { freq, left, right } => Some(right),
-            Self::Leaf { token, freq } => None,
+            Self::Node { right, .. } => Some(right),
+            Self::Leaf { .. } => None,
         }
     }
 }
