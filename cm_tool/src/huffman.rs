@@ -16,10 +16,10 @@
 
 Tree becomes
 Node freq=8
- ├── left  -> Leaf { freq:5, token:'a' }
+ ├── left  -> Leaf { freq:5, char:'a' }
  └── right -> Node freq=3
-              ├── left  -> Leaf { freq:1, token:'c' }
-              └── right -> Leaf { freq:2, token:'b' }
+              ├── left  -> Leaf { freq:1, char:'c' }
+              └── right -> Leaf { freq:2, char:'b' }
 */
 
 use Tree::*;
@@ -32,7 +32,7 @@ use std::{
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Tree<T> {
     Leaf {
-        token: T,
+        char: T,
         freq: i32,
     },
     Node {
@@ -42,6 +42,7 @@ pub enum Tree<T> {
     },
 }
 
+#[allow(dead_code)]
 impl<T: Clone> Tree<T> {
     pub fn freq(&self) -> i32 {
         match self {
@@ -50,9 +51,9 @@ impl<T: Clone> Tree<T> {
         }
     }
 
-    pub fn token(&self) -> Option<T> {
+    pub fn char(&self) -> Option<T> {
         match self {
-            Self::Leaf { token, ..} => Some(token.clone()),
+            Self::Leaf { char, ..} => Some(char.clone()),
             Self::Node { .. } => None,
         }
     }
@@ -91,9 +92,9 @@ pub fn huffman_tree<T: Clone + Eq + Debug>(char_map: HashMap<T, i32>) -> Tree<T>
     let mut min_heap = BinaryHeap::new();
 
     // Add char and frequencies to the heap table
-    for (token, freq) in char_map {
-        let (token, freq) = (token.clone(), freq);
-        min_heap.push(Reverse(Leaf { token, freq }));
+    for (char, freq) in char_map {
+        let (char, freq) = (char.clone(), freq);
+        min_heap.push(Reverse(Leaf { char, freq }));
     }
 
     while min_heap.len() > 1 {
@@ -135,11 +136,11 @@ mod tests {
         assert_eq!(tree.left().map(|n| n.freq()), Some(40));
         assert_eq!(tree.right().map(|n| n.freq()), Some(50));
         // test the most frequent char, which should be 'a'
-        assert_eq!(tree.left().and_then(|char| char.token()), Some('a'));
+        assert_eq!(tree.left().and_then(|char| char.char()), Some('a'));
 
         // second most frequent char
         assert_eq!(
-            tree.right().and_then(|n| n.left()).and_then(|f| f.token()),
+            tree.right().and_then(|n| n.left()).and_then(|f| f.char()),
             Some('b')
         );
         assert_eq!(
@@ -152,7 +153,7 @@ mod tests {
             tree.right()
                 .and_then(|n| n.right())
                 .and_then(|f| f.right())
-                .and_then(|f| f.token()),
+                .and_then(|f| f.char()),
             Some('c')
         );
         assert_eq!(
@@ -168,7 +169,7 @@ mod tests {
             tree.right()
                 .and_then(|n| n.right())
                 .and_then(|f| f.left())
-                .and_then(|f| f.token()),
+                .and_then(|f| f.char()),
             Some('d')
         );
         assert_eq!(

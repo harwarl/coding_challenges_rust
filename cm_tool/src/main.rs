@@ -1,12 +1,11 @@
 use clap::{Parser, ValueEnum};
 use std::{collections::HashMap, fs::File, io::BufReader, path::PathBuf, time};
 
-use crate::huffman::huffman_tree;
-
 mod decode;
 mod encode;
 mod helpers;
 mod huffman;
+mod prefix_table;
 
 #[derive(Debug, Clone, Parser)]
 #[command(author, version, about, long_about=None)]
