@@ -33,10 +33,10 @@ use std::{
 pub enum Tree<T> {
     Leaf {
         char: T,
-        freq: i32,
+        freq: u64,
     },
     Node {
-        freq: i32,
+        freq: u64,
         left: Box<Tree<T>>,
         right: Box<Tree<T>>,
     },
@@ -44,7 +44,7 @@ pub enum Tree<T> {
 
 #[allow(dead_code)]
 impl<T: Clone> Tree<T> {
-    pub fn freq(&self) -> i32 {
+    pub fn freq(&self) -> u64 {
         match self {
             Self::Leaf { freq, .. } => *freq,
             Self::Node { freq, .. } => *freq,
@@ -87,7 +87,7 @@ impl<T: Clone + Eq> PartialOrd for Tree<T> {
     }
 }
 
-pub fn huffman_tree<T: Clone + Eq + Debug>(char_map: HashMap<T, i32>) -> Tree<T> {
+pub fn huffman_tree<T: Clone + Eq + Debug>(char_map: HashMap<T, u64>) -> Tree<T> {
     // Since Binary Heap is Max Heap by default, use reverse for min Heap
     let mut min_heap = BinaryHeap::new();
 

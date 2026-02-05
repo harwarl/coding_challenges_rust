@@ -1,18 +1,14 @@
 // left - 0
 // right - 1
-
+use crate::huffman::Tree;
 use std::{collections::HashMap, hash::Hash};
 
-use crate::huffman::Tree;
-use Tree::*;
-
-pub fn generate_huffman_codes<T: Clone + Eq + Hash>(huffman_tree: Tree<T>) -> HashMap<T, String>{
+pub fn generate_huffman_codes<T: Clone + Eq + Hash>(huffman_tree: Tree<T>) -> HashMap<T, String> {
     // keep track of the bits and store when a char is met
-    let mut char_map: HashMap<T, i32> = HashMap::new();
     let mut codes_char: HashMap<T, String> = HashMap::new();
-    let mut code = String::new();
+    let mut codes = String::new();
     // Get the codes
-    get_code::<T>(huffman_tree, &mut code, &mut codes_char);
+    get_code::<T>(huffman_tree, &mut codes, &mut codes_char);
     codes_char
 }
 
@@ -48,7 +44,7 @@ mod test {
     #[test]
     fn test_codes() {
         // Generate a Tree
-        let mut char_map: HashMap<char, i32> = HashMap::new();
+        let mut char_map: HashMap<char, u64> = HashMap::new();
         char_map.insert('e', 120);
         char_map.insert('u', 37);
         char_map.insert('d', 42);
