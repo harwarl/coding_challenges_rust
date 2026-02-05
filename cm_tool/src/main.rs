@@ -5,7 +5,7 @@ mod decode;
 mod encode;
 mod helpers;
 mod huffman;
-mod prefix_table;
+mod generate_huffman_codes;
 
 #[derive(Debug, Clone, Parser)]
 #[command(author, version, about, long_about=None)]

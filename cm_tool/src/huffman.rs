@@ -53,14 +53,14 @@ impl<T: Clone> Tree<T> {
 
     pub fn char(&self) -> Option<T> {
         match self {
-            Self::Leaf { char, ..} => Some(char.clone()),
+            Self::Leaf { char, .. } => Some(char.clone()),
             Self::Node { .. } => None,
         }
     }
 
     pub fn left(&self) -> Option<&Tree<T>> {
         match self {
-            Self::Node {left, .. } => Some(left),
+            Self::Node { left, .. } => Some(left),
             Self::Leaf { .. } => None,
         }
     }
