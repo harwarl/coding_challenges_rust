@@ -59,27 +59,31 @@ pub fn encoder(reader: BufReader<File>, codes: &HashMap<char, String>, output_pa
         .expect("Failed to open input file");
     let mut writer = BufWriter::new(file);
     // create a bitvec holder
-    let mut bv = BitVec::<u8, Msb0>::new();
+    let mut bv: BitVec<u8, Msb0> = BitVec::<u8, Msb0>::new();
 
     for line in reader.lines() {
         let line = line.expect("failed to read line");
-        
-        for ch in line.chars() {
-            if let Some(bits) = codes.get(&ch) {
-                for bit in bits.chars() {
-                    if bit == '1' {
-                        bv.push(true);
-                    } else {
-                        bv.push(false)
-                    }
-                }
-            } 
-        }
+        push_to_bit(&mut bv, line, codes);
     }
 
     let packed_bytes = bv.as_raw_slice();
     // write to file
     writer.write_all(packed_bytes).expect("Failed to write");
+}
+
+// Converts each lines to bits
+pub fn push_to_bit(bv: &mut BitVec<u8, Msb0>, line: String, codes: &HashMap<char, String>) {
+    for ch in line.chars() {
+        if let Some(bits) = codes.get(&ch) {
+            for bit in bits.chars() {
+                if bit == '1' {
+                    bv.push(true);
+                } else {
+                    bv.push(false)
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -99,5 +103,26 @@ mod tests {
         let mut lines = buf_reader.lines();
 
         assert_eq!(lines.next().unwrap().unwrap(), "a -> 00");
+    }
+
+    #[test]
+    fn test_push_to_bits() {
+        let line = String::from("abcaba");
+        let codes = HashMap::from([
+            ('a', "0".to_string()),
+            ('b', "10".to_string()),
+            ('c', "11".to_string()),
+        ]);
+        let mut bv = BitVec::<u8, Msb0>::new();
+
+        push_to_bit(&mut bv, line, &codes);
+
+        let packed_bytes = bv.as_raw_slice();
+
+        // abcaba into bits - 01011010 00000000
+        // 01011010 binary - 90 (decimals)
+        // 00000000 binary - 0 (decimals)
+        assert_eq!(packed_bytes[0], 90);
+        assert_eq!(packed_bytes[1], 0);
     }
 }
