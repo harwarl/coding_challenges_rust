@@ -59,28 +59,27 @@ pub fn encoder(reader: BufReader<File>, codes: &HashMap<char, String>, output_pa
         .expect("Failed to open input file");
     let mut writer = BufWriter::new(file);
     // create a bitvec holder
-    let mut compressed_bits = BitVec::<u8, Msb0>::new();
+    let mut bv = BitVec::<u8, Msb0>::new();
 
     for line in reader.lines() {
         let line = line.expect("failed to read line");
-        // re add the new line striped by .lines()
-        // let line_with_nl = line + "\n";
-
+        
         for ch in line.chars() {
-            let code_str = codes
-                .get(&ch)
-                .unwrap_or_else(|| panic!("char '{}' not in Huffman Tree", ch));
-
-            // convert code_str to actual bits
-            for bit_char in code_str.chars() {
-                compressed_bits.push(bit_char == '1');
-            }
+            if let Some(bits) = codes.get(&ch) {
+                for bit in bits.chars() {
+                    if bit == '1' {
+                        bv.push(true);
+                    } else {
+                        bv.push(false)
+                    }
+                }
+            } 
         }
     }
-    // writer
-    //     .write_all(compressed_bits.as_raw_slice())
-    //     .expect("Failed to write to file");
-    // writer.flush().expect("Failed to flush writer");
+
+    let packed_bytes = bv.as_raw_slice();
+    // write to file
+    writer.write_all(packed_bytes).expect("Failed to write");
 }
 
 #[cfg(test)]
