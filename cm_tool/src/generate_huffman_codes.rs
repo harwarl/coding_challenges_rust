@@ -37,9 +37,8 @@ pub fn get_code<T: Clone + Eq + Hash>(
 
 #[cfg(test)]
 mod test {
-    use crate::huffman::huffman_tree;
-
     use super::*;
+    use crate::huffman::huffman_tree;
 
     #[test]
     fn test_codes() {

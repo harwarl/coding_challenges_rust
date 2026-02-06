@@ -1,5 +1,5 @@
 use clap::{Parser, ValueEnum};
-use std::{collections::HashMap, fs::File, io::BufReader, path::PathBuf, time};
+use std::{fs::File, io::BufReader, path::PathBuf, time};
 
 mod decode;
 mod encode;
@@ -25,26 +25,19 @@ pub enum Action {
 }
 
 // Sample commands
-// cargo run -- compress test.txt output.txt
-// cargo run -- extract output.txt output.txt
+// cargo run -- encode test.txt output.txt
+// cargo run -- decode output.txt output.txt
 
 fn main() {
     let args = Args::parse();
 
     match args.action {
         Action::Encode => {
-            let timer: time::Instant = time::Instant::now();
-            // load file
-            let buf_reader: BufReader<File> = helpers::load_file(args.input);
-            // Get the time elapsed to read the file
-            let time = timer.elapsed();
-            println!("Read source file with in times {time:?}");
-
             // Start encoding while it's timed
             let timer = time::Instant::now();
-            encode::encode_and_output_file(args.output, buf_reader);
+            encode::encode_and_output_file(&args.output, &args.input);
             let time = timer.elapsed();
-            
+
             println!("File encoded in {time:?}")
         }
         Action::Decode => {}

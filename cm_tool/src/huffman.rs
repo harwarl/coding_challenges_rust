@@ -102,8 +102,6 @@ pub fn huffman_tree<T: Clone + Eq + Debug>(char_map: HashMap<T, u64>) -> Tree<T>
         let node1 = min_heap.pop().unwrap().0;
         let node2 = min_heap.pop().unwrap().0;
 
-        println!("Node 1: {:?}, Node 2: {:?}", node1, node2);
-
         // merge the two nodes
         let merged_node = Node {
             freq: node1.freq() + node2.freq(),
