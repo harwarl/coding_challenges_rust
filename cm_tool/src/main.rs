@@ -37,9 +37,14 @@ fn main() {
             let timer = time::Instant::now();
             encode::encode_and_output_file(&args.output, &args.input);
             let time = timer.elapsed();
-
             println!("File encoded in {time:?}")
         }
-        Action::Decode => {}
+        Action::Decode => {
+            // Start decoding
+            let timer = time::Instant::now();
+            decode::decode_and_output_file(&args.output, &args.input);
+            let time = timer.elapsed();
+            println!("File decoded in {time:?}");
+        }
     }
 }

@@ -1,18 +1,12 @@
 use std::{
     collections::HashMap,
     fs::{File, OpenOptions},
-    io::{BufRead, BufReader, BufWriter, Write},
+    hash::Hash,
+    io::{BufRead, BufReader, BufWriter, Lines, Write},
     path::{Path, PathBuf},
 };
 
 use bitvec::prelude::*;
-
-struct BitWriter {
-    buffer: u8,
-    count: u8,
-}
-
-impl BitWriter {}
 
 pub fn load_file<P: AsRef<Path>>(path: P) -> BufReader<File> {
     // Open file in path
@@ -45,10 +39,10 @@ pub fn write_header_to_file<P: AsRef<Path>>(output: P, codes: &HashMap<char, Str
 
     for (ch, code) in codes {
         // Write the code to the file
-        write!(file, "{} -> {}\n", ch, code).expect("Error writing to file");
+        write!(file, "{}:{}\n", ch, code).expect("Error writing to file");
     }
 
-    write!(file, "huffman encoding starts").expect("Error writing to file");
+    write!(file, "encoding\n").expect("Error writing to file");
 }
 
 pub fn encoder(reader: BufReader<File>, codes: &HashMap<char, String>, output_path: &PathBuf) {
@@ -86,6 +80,34 @@ pub fn push_to_bit(bv: &mut BitVec<u8, Msb0>, line: String, codes: &HashMap<char
     }
 }
 
+pub fn decoder(reader: BufReader<File>) -> HashMap<char, String> {
+    let lines = reader.lines();
+    let mut codes_map: HashMap<char, String> = HashMap::new();
+    get_chars_code(lines, &mut codes_map);
+    codes_map
+}
+
+pub fn get_chars_code(lines: Lines<BufReader<File>>, codes: &mut HashMap<char, String>) {
+    for line in lines {
+        let line = line.expect("Could not read line");
+        if line == "encode\n" { // Break when line gets to "encode"
+            break;
+        };
+        get_codes(&line, codes);
+    }
+}
+
+fn get_codes(line: &String, codes: &mut HashMap<char, String>) {
+    let parts: Vec<&str> = line.split(":").collect();
+    if parts.len() == 2 {
+        // get the char
+        let ch = parts[0].chars().next().unwrap();
+        // get the code
+        let bit_string = parts[1].to_string();
+        codes.insert(ch, bit_string);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -113,10 +135,9 @@ mod tests {
             ('b', "10".to_string()),
             ('c', "11".to_string()),
         ]);
+
         let mut bv = BitVec::<u8, Msb0>::new();
-
         push_to_bit(&mut bv, line, &codes);
-
         let packed_bytes = bv.as_raw_slice();
 
         // abcaba into bits - 01011010 00000000
@@ -124,5 +145,13 @@ mod tests {
         // 00000000 binary - 0 (decimals)
         assert_eq!(packed_bytes[0], 90);
         assert_eq!(packed_bytes[1], 0);
+    }
+
+    #[test]
+    fn test_get_char_code() {
+        let line = "A:1010101".to_string();
+        let mut codes = HashMap::<char, String>::new();
+        get_codes(&line, &mut codes);
+        assert_eq!(codes.get(&'A').unwrap().to_string(), "1010101");
     }
 }
