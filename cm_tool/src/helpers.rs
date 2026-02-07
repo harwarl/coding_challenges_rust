@@ -80,11 +80,23 @@ pub fn push_to_bit(bv: &mut BitVec<u8, Msb0>, line: String, codes: &HashMap<char
     }
 }
 
-pub fn decoder(reader: BufReader<File>) -> HashMap<char, String> {
+pub fn decode_file(reader: BufReader<File>, chars_code: HashMap<char, String>) {
+    // Start reading file from encode header
+    // let lines = reader.lines();
+
+    // for line in lines {
+    //     if line != "encode\n" { // Break when line gets to "encode"
+    //         break;
+    //     };
+    // }
+}
+
+// Invert the code map
+pub fn decoder(reader: BufReader<File>) -> HashMap<String, char> {
     let lines = reader.lines();
     let mut codes_map: HashMap<char, String> = HashMap::new();
     get_chars_code(lines, &mut codes_map);
-    codes_map
+    codes_map.into_iter().map(|(c, s)| (s, c)).collect()
 }
 
 pub fn get_chars_code(lines: Lines<BufReader<File>>, codes: &mut HashMap<char, String>) {
