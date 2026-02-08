@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs::File, io::BufReader, path::PathBuf};
+use std::{collections::HashMap, fs::File, hash::Hash, io::BufReader, path::PathBuf};
 
 use crate::{
     generate_huffman_codes::generate_huffman_codes,
