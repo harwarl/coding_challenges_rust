@@ -1,11 +1,13 @@
 use std::{
     collections::HashMap,
-    fs::{File, OpenOptions},
-    io::{BufRead, BufReader, BufWriter, Lines, Write},
+    fs::{File, OpenOptions, read, write},
+    io::{BufRead, BufReader, Lines, Write},
     path::{Path, PathBuf},
 };
 
 use bitvec::prelude::*;
+
+use crate::EncodedData;
 
 pub fn load_file<P: AsRef<Path>>(path: P) -> BufReader<File> {
     // Open file in path
@@ -13,6 +15,11 @@ pub fn load_file<P: AsRef<Path>>(path: P) -> BufReader<File> {
     // create a new buffer reader
     BufReader::new(file)
 }
+
+pub fn read_file<P: AsRef<Path>>(input_path: P) -> Vec<u8> {
+    let file_content = read(input_path).expect("Unable to read");
+    file_content
+} 
 
 pub fn get_char_occurence(reader: BufReader<File>) -> HashMap<char, u64> {
     // char hashMap
@@ -50,7 +57,7 @@ pub fn encoder(reader: BufReader<File>, codes: &HashMap<char, String>, output_pa
         .append(true)
         .open(&output_path)
         .expect("Failed to open input file");
-    let mut writer = BufWriter::new(file);
+    // let mut writer = BufWriter::new(file);
     // create a bitvec holder
     let mut bv: BitVec<u8, Msb0> = BitVec::<u8, Msb0>::new();
 
@@ -59,9 +66,17 @@ pub fn encoder(reader: BufReader<File>, codes: &HashMap<char, String>, output_pa
         push_to_bit(&mut bv, line, codes);
     }
 
-    let packed_bytes = bv.as_raw_slice();
+    // let packed_bytes = bv.as_raw_slice();
     // write to file
-    writer.write_all(packed_bytes).expect("Failed to write");
+    let encoded_data = EncodedData {
+        codes: codes.clone(),
+        total_bits: bv.len(),
+        data: bv.as_raw_slice().to_vec()
+    };
+
+    let buf = rmp_serde::to_vec(&encoded_data).expect("Error converting to message packed bytes");
+
+    write(output_path, buf).expect("Unable to write file");
 }
 
 // Converts each lines to bits
@@ -77,17 +92,6 @@ pub fn push_to_bit(bv: &mut BitVec<u8, Msb0>, line: String, codes: &HashMap<char
             }
         }
     }
-}
-
-pub fn decode_file(reader: BufReader<File>, chars_code: HashMap<char, String>) {
-    // Start reading file from encode header
-    // let lines = reader.lines();
-
-    // for line in lines {
-    //     if line != "encode\n" { // Break when line gets to "encode"
-    //         break;
-    //     };
-    // }
 }
 
 // Invert the code map

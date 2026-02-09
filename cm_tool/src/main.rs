@@ -38,8 +38,8 @@ pub struct EncodedData {
 }
 
 // Sample commands
-// cargo run -- encode test.txt output.txt
-// cargo run -- decode output.txt output.txt
+// cargo run -- encode test.txt outHuff.huff
+// cargo run -- decode outHuff.huff testNew.txt
 
 fn main() {
     let args = Args::parse();
