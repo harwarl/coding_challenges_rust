@@ -1,5 +1,7 @@
+use bitvec::vec::BitVec;
 use clap::{Parser, ValueEnum};
-use std::{fs::File, io::BufReader, path::PathBuf, time};
+use serde::{Deserialize, Serialize};
+use std::{ collections::HashMap, path::PathBuf, time};
 
 mod decode;
 mod encode;
@@ -22,6 +24,17 @@ pub struct Args {
 pub enum Action {
     Encode,
     Decode,
+}
+
+
+#[derive(Serialize, Deserialize)]
+pub struct EncodedData {
+    // Huffman code map
+    codes: HashMap<char, String>,
+    // exact number of bits
+    total_bits: usize,
+    // Packed Binary bytes
+    data: Vec<u8>
 }
 
 // Sample commands
