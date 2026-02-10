@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
-    fs::{File, OpenOptions, read, write},
-    io::{BufRead, BufReader, Lines, Write},
+    fs::{File, read, write},
+    io::{BufRead, BufReader, Write},
     path::{Path, PathBuf},
 };
 
@@ -52,11 +52,6 @@ pub fn write_header_to_file<P: AsRef<Path>>(output: P, codes: &HashMap<char, Str
 }
 
 pub fn encoder(reader: BufReader<File>, codes: &HashMap<char, String>, output_path: &PathBuf) {
-    let file = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .open(&output_path)
-        .expect("Failed to open input file");
     // let mut writer = BufWriter::new(file);
     // create a bitvec holder
     let mut bv: BitVec<u8, Msb0> = BitVec::<u8, Msb0>::new();
@@ -95,33 +90,33 @@ pub fn push_to_bit(bv: &mut BitVec<u8, Msb0>, line: String, codes: &HashMap<char
 }
 
 // Invert the code map
-pub fn decoder(reader: BufReader<File>) -> HashMap<String, char> {
-    let lines = reader.lines();
-    let mut codes_map: HashMap<char, String> = HashMap::new();
-    get_chars_code(lines, &mut codes_map);
-    codes_map.into_iter().map(|(c, s)| (s, c)).collect()
-}
+// pub fn decoder(reader: BufReader<File>) -> HashMap<String, char> {
+//     let lines = reader.lines();
+//     let mut codes_map: HashMap<char, String> = HashMap::new();
+//     get_chars_code(lines, &mut codes_map);
+//     codes_map.into_iter().map(|(c, s)| (s, c)).collect()
+// }
 
-pub fn get_chars_code(lines: Lines<BufReader<File>>, codes: &mut HashMap<char, String>) {
-    for line in lines {
-        let line = line.expect("Could not read line");
-        if line == "encode\n" { // Break when line gets to "encode"
-            break;
-        };
-        get_codes(&line, codes);
-    }
-}
+// pub fn get_chars_code(lines: Lines<BufReader<File>>, codes: &mut HashMap<char, String>) {
+//     for line in lines {
+//         let line = line.expect("Could not read line");
+//         if line == "encode\n" { // Break when line gets to "encode"
+//             break;
+//         };
+//         get_codes(&line, codes);
+//     }
+// }
 
-fn get_codes(line: &String, codes: &mut HashMap<char, String>) {
-    let parts: Vec<&str> = line.split(":").collect();
-    if parts.len() == 2 {
-        // get the char
-        let ch = parts[0].chars().next().unwrap();
-        // get the code
-        let bit_string = parts[1].to_string();
-        codes.insert(ch, bit_string);
-    }
-}
+// fn get_codes(line: &String, codes: &mut HashMap<char, String>) {
+//     let parts: Vec<&str> = line.split(":").collect();
+//     if parts.len() == 2 {
+//         // get the char
+//         let ch = parts[0].chars().next().unwrap();
+//         // get the code
+//         let bit_string = parts[1].to_string();
+//         codes.insert(ch, bit_string);
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
@@ -162,11 +157,11 @@ mod tests {
         assert_eq!(packed_bytes[1], 0);
     }
 
-    #[test]
-    fn test_get_char_code() {
-        let line = "A:1010101".to_string();
-        let mut codes = HashMap::<char, String>::new();
-        get_codes(&line, &mut codes);
-        assert_eq!(codes.get(&'A').unwrap().to_string(), "1010101");
-    }
+    // #[test]
+    // fn test_get_char_code() {
+    //     let line = "A:1010101".to_string();
+    //     let mut codes = HashMap::<char, String>::new();
+    //     get_codes(&line, &mut codes);
+    //     assert_eq!(codes.get(&'A').unwrap().to_string(), "1010101");
+    // }
 }

@@ -1,8 +1,8 @@
-use std::{collections::HashMap, fs::{File, OpenOptions}, io::{BufReader, Write}, path::PathBuf};
+use std::{collections::HashMap, fs::{ OpenOptions}, io::{ Write}, path::PathBuf};
 
 use bitvec::{order::Msb0, vec::BitVec, view::BitView};
 
-use crate::{EncodedData, helpers::{self, load_file, read_file}};
+use crate::{EncodedData, helpers::{read_file}};
 
 pub fn decode_and_output_file(output_path: &PathBuf, input_path: &PathBuf) {
     // Open the file

@@ -1,4 +1,3 @@
-use bitvec::vec::BitVec;
 use clap::{Parser, ValueEnum};
 use serde::{Deserialize, Serialize};
 use std::{ collections::HashMap, path::PathBuf, time};
