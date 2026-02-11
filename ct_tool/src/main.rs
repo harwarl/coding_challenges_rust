@@ -8,6 +8,10 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
-    
+
+    match args {
+        _ => println!("No Arguments Provided")
+    };
+
     println!("Hello, world!");
 }
