@@ -1,5 +1,5 @@
 
-use std::{fs::File, io::{self, BufReader, Read, read_to_string}, path::PathBuf};
+use std::{io::{self, Read}};
 
 use clap::Parser;
 #[derive(Debug, Parser)]
@@ -7,7 +7,11 @@ use clap::Parser;
 struct Args {
     /// Fields to cut (1 - based)
     #[arg(short, long)]
-    fields: usize,
+    field: usize,
+
+    /// Delimiter to use instead of whitespace
+    #[arg(short, long)]
+    delimiter: Option<String>,
 
     /// path of file to read ,if not provided, it will read from stdin
     #[arg(help = "path to file to check")]
@@ -29,5 +33,35 @@ fn main() {
         }
     };
 
-    println!("Hello, world!");
+    match args.field {
+        0 => println!("Field number must be greater than 0"),
+        field => {
+            let delimiter = match args.delimiter {
+                Some(delimiter) => {
+                    delimiter
+                },
+                None => {
+                    " ".to_string()
+                }
+            };
+            let result = cut_field_with_delimiter(file_contents, field, &delimiter);
+            println!("{}", result);
+        }
+    }
+}
+
+
+pub fn cut_field_with_delimiter(file_contents: String, field: usize, delimiter: &String) -> String  {
+    let mut result = String::new();
+
+    // Print out the selected field from each line
+    for line in file_contents.lines() {
+        let rows: Vec<&str> = line.split(delimiter).collect();
+        if rows.len() >= field {
+            result.push_str(rows[field - 1]);
+            result.push('\n');
+        }
+    }
+
+    result
 }
