@@ -36,24 +36,36 @@ fn main() {
     match args.field {
         0 => println!("Field number must be greater than 0"),
         field => {
-            let delimiter = match args.delimiter {
+            let result = match args.delimiter {
                 Some(delimiter) => {
-                    delimiter
+                    cut_field_with_delimiter(file_contents, field, &delimiter)
                 },
                 None => {
-                    " ".to_string()
+                    cut_field(file_contents, field)
                 }
             };
-            let result = cut_field_with_delimiter(file_contents, field, &delimiter);
             println!("{}", result);
         }
     }
 }
 
-
-pub fn cut_field_with_delimiter(file_contents: String, field: usize, delimiter: &String) -> String  {
+fn cut_field(file_contents: String, field: usize) -> String  {
     let mut result = String::new();
 
+    // Print out the selected field from each line
+    for line in file_contents.lines() {
+        let rows: Vec<&str> = line.split_whitespace().collect();
+        if rows.len() >= field {
+            result.push_str(rows[field - 1]);
+            result.push('\n');
+        }
+    }
+
+    result
+}
+
+fn cut_field_with_delimiter(file_contents: String, field: usize, delimiter: &String) -> String  {
+    let mut result = String::new();
     // Print out the selected field from each line
     for line in file_contents.lines() {
         let rows: Vec<&str> = line.split(delimiter).collect();
