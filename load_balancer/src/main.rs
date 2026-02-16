@@ -5,9 +5,10 @@
  * - Handle a server going offline
  * - Handle a server coming back online
  */
+
 mod lib;
 use std::{
-    fs::read_to_string, io::{BufRead, BufReader}, net::{TcpListener, TcpStream}, thread, time::{Duration, Instant}
+    io::{BufRead, BufReader}, net::{TcpListener, TcpStream}, thread, time::{Duration}
 };
 
 use load_balancer::{LoadBalancer, Server};
@@ -96,18 +97,15 @@ fn handle_connection(stream: TcpStream, lb: &mut LoadBalancer,servers: &Vec<Serv
 
     if request_line == "GET / HTTP/1.1" {
         // ("HTTP/1.1 200 OK", "response.html")
-        let server = match lb.get_next_server(servers) {
-            Some(v) => v,
+        match lb.get_next_server(servers) {
+            Some(v) => {
+                
+            },
             None => {
-                panic!("No healthy Server available");
+                // Send a response to the client
             }
         };
 
-        print!("server url right: {}", server.url);
+        
     }
-
-    // let contents = read_to_string("output.txt").unwrap();
-    // let length = contents.len();
-    // // let response = format!("{}\r\nContent-Length: {}\r\n\r\n{}", status_line, length, contents);
-    // // stream.write_all(response.as_bytes()).unwrap();
 }
