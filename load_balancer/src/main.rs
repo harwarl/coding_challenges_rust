@@ -82,8 +82,7 @@ fn load_config() -> Config {
 fn check_health(server: &Server, interval: Duration) {
     loop {
         // Check the server by making a http/tcp call to the server
-        server.set_health(true);
-        // println!("{} => {}", server.url, true);
+        server.health_check();
         thread::sleep(interval);
     }
 }
@@ -104,7 +103,7 @@ fn handle_connection(stream: TcpStream, lb: &mut LoadBalancer,servers: &Vec<Serv
             }
         };
 
-        print!("server: {}", server.url);
+        print!("server url right: {}", server.url);
     }
 
     // let contents = read_to_string("output.txt").unwrap();
