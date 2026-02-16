@@ -5,10 +5,12 @@
  * - Handle a server going offline
  * - Handle a server coming back online
  */
-
 mod lib;
 use std::{
-    io::{BufRead, BufReader}, net::{TcpListener, TcpStream}, thread, time::{Duration}
+    io::{BufRead, BufReader, Write},
+    net::{TcpListener, TcpStream},
+    thread,
+    time::Duration,
 };
 
 use load_balancer::{LoadBalancer, Server};
@@ -67,7 +69,7 @@ fn main() {
     let listener = TcpListener::bind(addr).expect("Could not start up Tcp server");
 
     for stream in listener.incoming() {
-        let stream = stream.unwrap();
+        let mut stream = stream.unwrap();
 
         handle_connection(stream, &mut lb, &servers);
     }
@@ -88,8 +90,8 @@ fn check_health(server: &Server, interval: Duration) {
     }
 }
 
-fn handle_connection(stream: TcpStream, lb: &mut LoadBalancer,servers: &Vec<Server>) {
-    let buffer = BufReader::new(stream);
+fn handle_connection(mut stream: TcpStream, lb: &mut LoadBalancer, servers: &Vec<Server>) {
+    let buffer = BufReader::new(&mut stream);
 
     let request_line = buffer.lines().next().unwrap().unwrap();
 
@@ -99,13 +101,55 @@ fn handle_connection(stream: TcpStream, lb: &mut LoadBalancer,servers: &Vec<Serv
         // ("HTTP/1.1 200 OK", "response.html")
         match lb.get_next_server(servers) {
             Some(v) => {
-                
-            },
+                // Send the request to the server
+                match TcpStream::connect(&v.url) {
+                    Ok(mut _stream) => {
+                        println!("Connected to {}", &v.url);
+
+                        // Write to the url
+                        
+                        // read from the url
+
+                    }
+                    Err(_) => {
+                        // Send a response to the client
+                        send_http_response(
+                            &mut stream,
+                            "503 Service Unavailable",
+                            "Unprocessible Entity",
+                        )
+                        .unwrap();
+                    }
+                }
+            }
             None => {
                 // Send a response to the client
+                send_http_response(
+                    &mut stream,
+                    "503 Service Unavailable",
+                    "No healthy server available",
+                )
+                .unwrap();
             }
         };
-
-        
     }
+}
+
+fn send_http_response(
+    stream: &mut TcpStream,
+    status_code: &str,
+    body: &str,
+) -> std::io::Result<()> {
+    let response = format!(
+        "HTTP/1.1 {}\r\nContent-Length: {}\r\n\r\n{}",
+        status_code,
+        body.len(),
+        body
+    );
+
+    // Write using stream
+    stream
+        .write_all(response.as_bytes())
+        .expect("failed to write");
+    Ok(())
 }

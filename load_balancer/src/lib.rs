@@ -1,4 +1,9 @@
-use std::{net::{IpAddr, TcpStream, ToSocketAddrs}, os::unix::net::SocketAddr, sync::{Arc, Mutex}, time::Duration};
+use std::{
+    net::{IpAddr, TcpStream, ToSocketAddrs},
+    os::unix::net::SocketAddr,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 pub struct LoadBalancer {
     current: Arc<Mutex<i32>>,
@@ -49,9 +54,14 @@ impl Server {
         // use tcp to check the server and set health as either true or false
         // convert the address to IPV4
         println!("Checking server health: {}", self.url);
-        
-        let socket_addr = self.url.to_socket_addrs().expect("Error converting url").next().expect("No Ip address found");
-        let is_alive = TcpStream::connect_timeout( &socket_addr, Duration::from_secs(1)).is_ok();
+
+        let socket_addr = self
+            .url
+            .to_socket_addrs()
+            .expect("Error converting url")
+            .next()
+            .expect("No Ip address found");
+        let is_alive = TcpStream::connect_timeout(&socket_addr, Duration::from_secs(1)).is_ok();
         println!("Server {} is alive? {}", self.url, is_alive);
         self.set_health(is_alive);
         is_alive
