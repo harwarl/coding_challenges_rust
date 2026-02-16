@@ -40,7 +40,7 @@ impl LB {
 
 #[derive(Debug, Clone)]
 pub struct Server {
-    url: String,
+    pub url: String,
     is_healthy: Arc<Mutex<bool>>,
 }
 
@@ -79,9 +79,9 @@ impl Server {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
-    port: String,
-    health_check_interval: String,
-    servers: Vec<String>,
+    pub port: String,
+    pub health_check_interval: String,
+    pub servers: Vec<String>,
 }
