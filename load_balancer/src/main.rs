@@ -7,7 +7,7 @@
  */
 mod lib;
 use std::{
-    io::{BufRead, BufReader, Write},
+    io::{BufRead, BufReader, Read, Write},
     net::{TcpListener, TcpStream},
     thread,
     time::Duration,
@@ -98,18 +98,20 @@ fn handle_connection(mut stream: TcpStream, lb: &mut LoadBalancer, servers: &Vec
     println!("{}", request_line);
 
     if request_line == "GET / HTTP/1.1" {
-        // ("HTTP/1.1 200 OK", "response.html")
         match lb.get_next_server(servers) {
             Some(v) => {
                 // Send the request to the server
                 match TcpStream::connect(&v.url) {
-                    Ok(mut _stream) => {
+                    Ok(mut backend_stream) => {
                         println!("Connected to {}", &v.url);
+                        // Write to the url, i.e forward the response to the backend
+                        backend_stream.write_all(format!("{}\r\n\r\n", request_line).as_bytes()).unwrap();
 
-                        // Write to the url
-                        
                         // read from the url
-
+                        let mut backend_reader = BufReader::new(&backend_stream);
+                        let mut buffer: Vec<u8> = Vec::new();
+                        backend_reader.read_to_end(&mut buffer).unwrap();
+                        backend_stream.write_all(&buffer).unwrap();
                     }
                     Err(_) => {
                         // Send a response to the client
