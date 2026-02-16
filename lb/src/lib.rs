@@ -1,11 +1,15 @@
 use std::{
-    io::Result, net::{TcpStream, ToSocketAddrs}, sync::{Arc, Mutex}, time::Duration
+    io::Result,
+    net::{TcpStream, ToSocketAddrs},
+    sync::{Arc, Mutex},
+    time::Duration,
 };
+
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
 pub struct LB {
     current: Arc<Mutex<u32>>,
-
 }
 
 impl LB {
@@ -73,4 +77,11 @@ impl Server {
         *health = healthy;
         Ok(())
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Config {
+    port: String,
+    health_check_interval: String,
+    servers: Vec<String>,
 }
