@@ -33,9 +33,8 @@ fn main() {
 
         // add to array of servers
         servers.push(server);
-
     }
-    
+
     println!("Checking Servers");
     for server in &servers {
         let mut s = server.clone();
@@ -55,8 +54,7 @@ fn main() {
     println!("Addr: {addr}");
 
     // Start a single threaded web server
-    let listener = TcpListener::bind(addr)
-        .expect("Could not start up Tcp server");
+    let listener = TcpListener::bind(addr).expect("Could not start up Tcp server");
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
@@ -82,18 +80,44 @@ fn check_health(server: &mut Server, interval: Duration) {
     loop {
         let health = server.check_health();
         if !health {
-            println!("{} is down\n", server.url);
+            println!("{} is down", server.url);
         }
         thread::sleep(interval);
     }
 }
 
 fn handle_connection(mut stream: TcpStream, lb: &mut LB, servers: &Vec<Server>) {
-    let buf_reader = BufReader::new(&mut stream);
+    // Handle the first responses (get the socket address)
+    let peer = stream.peer_addr().unwrap();
+    let mut buf_reader = BufReader::new(&mut stream);
+    println!("Received Request from {}", peer.ip());
 
-    let request_line = buf_reader.lines().next().unwrap().unwrap();
+    // Read full HTTP request (headers)
+    let request_lines: Vec<String> = Vec::new();
+    let mut request_line = String::new();
 
+    loop {
+        let mut line = String::new();
+        let bytes = buf_reader.read_line(&mut line).unwrap();
+
+        if bytes == 0 {
+            return;
+        }
+
+        let trimmed = line.trim_end().to_string();
+        println!("{}", trimmed);
+
+        if trimmed.is_empty() { // End of headers
+            break;
+        }
+
+        if request_line.is_empty() {
+            request_line = trimmed.clone();
+        }
+    }
+    
     if request_line == "GET / HTTP/1.1" {
+        // send some form of response
         // get the next server
         match lb.get_next(servers) {
             Some(server) => {
@@ -101,7 +125,9 @@ fn handle_connection(mut stream: TcpStream, lb: &mut LB, servers: &Vec<Server>) 
                 match TcpStream::connect(&server.url) {
                     Ok(mut backend_stream) => {
                         // Write to the server
-                        backend_stream.write_all(format!("{}\r\n\r\n", request_line).as_bytes()).expect("Cannot write to server");
+                        backend_stream
+                            .write_all(format!("{}\r\n\r\n", request_line).as_bytes())
+                            .expect("Cannot write to server");
 
                         // Read from the server
                         let mut backend_reader = BufReader::new(&backend_stream);
@@ -109,7 +135,19 @@ fn handle_connection(mut stream: TcpStream, lb: &mut LB, servers: &Vec<Server>) 
 
                         // read to the buffer
                         backend_reader.read_to_end(&mut buffer).unwrap();
-                        backend_stream.write_all(&buffer).unwrap();
+
+                        // Read response from backend
+                        let mut buffer = [0u8; 4096];
+
+                        loop {
+                            let n = backend_stream.read(&mut buffer).unwrap();
+                            if n == 0 {
+                                break; // backend closed connection
+                            }
+
+                            // Send backend response to client
+                            stream.write_all(&buffer[..n]).unwrap();
+                        }
                     }
                     Err(_) => {
                         // send a 503 error to the user
@@ -153,3 +191,5 @@ fn send_http_response(
         .expect("Failed to write");
     Ok(())
 }
+
+
