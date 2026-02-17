@@ -141,7 +141,9 @@ fn handle_connection(mut stream: TcpStream, lb: &mut LB, servers: &Vec<Server>) 
 
                         loop {
                             let n = backend_stream.read(&mut buf).unwrap();
-                            if n == 0 { break; }
+                            if n == 0 {
+                                break;
+                            }
                             stream.write_all(&buf[..n]).unwrap();
                         }
                     }
@@ -149,8 +151,8 @@ fn handle_connection(mut stream: TcpStream, lb: &mut LB, servers: &Vec<Server>) 
                         // send a 422 error to the user
                         send_http_response(
                             &mut stream,
-                            "422 unprocessible entity",
-                            "Unprocessible entity",
+                            "502 Bad Gateway",
+                            "Backend server unreachable",
                         )
                         .unwrap();
                     }
