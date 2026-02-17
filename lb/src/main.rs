@@ -35,7 +35,6 @@ fn main() {
         servers.push(server);
     }
 
-    println!("Checking Servers");
     for server in &servers {
         let mut s = server.clone();
         thread::spawn(move || {
@@ -46,12 +45,7 @@ fn main() {
     // start the Load balancer
     let mut lb = LB::new();
 
-    // start a new http server and listen to "/" route
-    println!("Load Balancer started");
-
     let addr = "127.0.0.1:".to_string() + &config.port.to_string();
-
-    println!("Addr: {addr}");
 
     // Start a single threaded web server
     let listener = TcpListener::bind(addr).expect("Could not start up Tcp server");
@@ -93,7 +87,6 @@ fn handle_connection(mut stream: TcpStream, lb: &mut LB, servers: &Vec<Server>) 
     println!("Received Request from {}", peer.ip());
 
     // Read full HTTP request (headers)
-    let request_lines: Vec<String> = Vec::new();
     let mut request_line = String::new();
 
     loop {
@@ -107,7 +100,8 @@ fn handle_connection(mut stream: TcpStream, lb: &mut LB, servers: &Vec<Server>) 
         let trimmed = line.trim_end().to_string();
         println!("{}", trimmed);
 
-        if trimmed.is_empty() { // End of headers
+        if trimmed.is_empty() {
+            // End of headers
             break;
         }
 
@@ -115,7 +109,7 @@ fn handle_connection(mut stream: TcpStream, lb: &mut LB, servers: &Vec<Server>) 
             request_line = trimmed.clone();
         }
     }
-    
+
     if request_line == "GET / HTTP/1.1" {
         // send some form of response
         // get the next server
@@ -129,28 +123,30 @@ fn handle_connection(mut stream: TcpStream, lb: &mut LB, servers: &Vec<Server>) 
                             .write_all(format!("{}\r\n\r\n", request_line).as_bytes())
                             .expect("Cannot write to server");
 
+                        backend_stream.flush().expect("Failed to flush stream");
+
+                        // Http is not line based so this cannot work
                         // Read from the server
-                        let mut backend_reader = BufReader::new(&backend_stream);
-                        let mut buffer: Vec<u8> = Vec::new();
+                        // let mut backend_reader = BufReader::new(&backend_stream);
+                        // let mut buffer = String::new();
 
-                        // read to the buffer
-                        backend_reader.read_to_end(&mut buffer).unwrap();
+                        // backend_reader.read_line(&mut buffer).unwrap();
+                        // println!("Received: {} ", buffer.trim());
 
-                        // Read response from backend
-                        let mut buffer = [0u8; 4096];
+                        // // Write out the message using the lb stream
+                        // stream.write_all(buffer.trim().as_bytes()).unwrap();
+
+                        // Copy Backend and send to client
+                        let mut buf = [0u8; 4096];
 
                         loop {
-                            let n = backend_stream.read(&mut buffer).unwrap();
-                            if n == 0 {
-                                break; // backend closed connection
-                            }
-
-                            // Send backend response to client
-                            stream.write_all(&buffer[..n]).unwrap();
+                            let n = backend_stream.read(&mut buf).unwrap();
+                            if n == 0 { break; }
+                            stream.write_all(&buf[..n]).unwrap();
                         }
                     }
                     Err(_) => {
-                        // send a 503 error to the user
+                        // send a 422 error to the user
                         send_http_response(
                             &mut stream,
                             "422 unprocessible entity",
@@ -191,5 +187,3 @@ fn send_http_response(
         .expect("Failed to write");
     Ok(())
 }
-
-
